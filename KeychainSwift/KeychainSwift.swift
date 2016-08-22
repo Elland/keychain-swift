@@ -112,6 +112,7 @@ open class KeychainSwift {
   - returns: True if the value was successfully written to the keychain.
 
   */
+  @discardableResult
   open func set(_ value: Bool, forKey key: String,
     withAccess access: KeychainSwiftAccessOptions? = nil) -> Bool {
 
@@ -129,6 +130,7 @@ open class KeychainSwift {
   - returns: The text value from the keychain. Returns nil if unable to read the item.
   
   */
+  @discardableResult
   open func get(_ key: String) -> String? {
     if let data = getData(key) {
       if let currentString = NSString(data: data, encoding: String.Encoding.utf8.rawValue) as? String {
