@@ -43,7 +43,7 @@ class ViewController: UIViewController {
     updateValueLabel()
   }
   
-  private func updateValueLabel() {
+  fileprivate func updateValueLabel() {
     keychain.synchronizable = synchronizableSwitch.isOn
     
     if let value = keychain.get(TegKeychainDemo_keyName) {
@@ -53,7 +53,7 @@ class ViewController: UIViewController {
     }
   }
   
-  private func closeKeyboard() {
+  fileprivate func closeKeyboard() {
     textField.resignFirstResponder()
   }
   
