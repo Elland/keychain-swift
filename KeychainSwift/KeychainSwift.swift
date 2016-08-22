@@ -6,12 +6,12 @@ import Foundation
 A collection of helper functions for saving text and data in the keychain.
 
 */
-public class KeychainSwift {
+open class KeychainSwift {
   
   var lastQueryParameters: [String: NSObject]? // Used by the unit tests
   
   /// Contains result code from the last operation. Value is noErr (0) for a successful result.
-  public var lastResultCode: OSStatus = noErr
+  open var lastResultCode: OSStatus = noErr
 
   var keyPrefix = "" // Can be useful in test.
   
@@ -20,7 +20,7 @@ public class KeychainSwift {
   Specify an access group that will be used to access keychain items. Access groups can be used to share keychain items between applications. When access group value is nil all application access groups are being accessed. Access group name is used by all functions: set, get, delete and clear.
 
   */
-  public var accessGroup: String?
+  open var accessGroup: String?
   
   
   /**
@@ -29,7 +29,7 @@ public class KeychainSwift {
    add the item to other devices with the `set` method and obtain synchronizable items with the `get` command. Deleting synchronizable items will remove them from all devices. In order for keychain synchronization to work the user must enable "Keychain" in iCloud settings.
    
   */
-  public var synchronizable: Bool = false
+  open var synchronizable: Bool = false
   
   /// Instantiate a KeychainSwift object
   public init() { }
@@ -54,10 +54,11 @@ public class KeychainSwift {
    - returns: True if the text was successfully written to the keychain.
 
   */
-  public func set(value: String, forKey key: String,
+  @discardableResult
+  open func set(_ value: String, forKey key: String,
                   withAccess access: KeychainSwiftAccessOptions? = nil) -> Bool {
     
-    if let value = value.dataUsingEncoding(NSUTF8StringEncoding) {
+    if let value = value.data(using: String.Encoding.utf8) {
       return set(value, forKey: key, withAccess: access)
     }
     
@@ -75,7 +76,7 @@ public class KeychainSwift {
   - returns: True if the text was successfully written to the keychain.
   
   */
-  public func set(value: NSData, forKey key: String,
+  open func set(_ value: Data, forKey key: String,
     withAccess access: KeychainSwiftAccessOptions? = nil) -> Bool {
     
     delete(key) // Delete any existing key before saving it
@@ -86,16 +87,16 @@ public class KeychainSwift {
       
     var query = [
       KeychainSwiftConstants.klass       : kSecClassGenericPassword,
-      KeychainSwiftConstants.attrAccount : prefixedKey,
-      KeychainSwiftConstants.valueData   : value,
-      KeychainSwiftConstants.accessible  : accessible
-    ]
+      KeychainSwiftConstants.attrAccount : prefixedKey as NSObject,
+      KeychainSwiftConstants.valueData   : value as NSObject,
+      KeychainSwiftConstants.accessible  : accessible as NSObject
+    ] as [String : NSObject]
       
     query = addAccessGroupWhenPresent(query)
     query = addSynchronizableIfRequired(query, addingItems: true)
     lastQueryParameters = query
     
-    lastResultCode = SecItemAdd(query as CFDictionaryRef, nil)
+    lastResultCode = SecItemAdd(query as CFDictionary, nil)
     
     return lastResultCode == noErr
   }
@@ -111,11 +112,12 @@ public class KeychainSwift {
   - returns: True if the value was successfully written to the keychain.
 
   */
-  public func set(value: Bool, forKey key: String,
+  open func set(_ value: Bool, forKey key: String,
     withAccess access: KeychainSwiftAccessOptions? = nil) -> Bool {
 
-    var localValue = value
-    let data = NSData(bytes: &localValue, length: sizeof(Bool))
+    let bytes: [UInt8] = value ? [1] : [0]
+    let data = Data(bytes: bytes)
+
     return set(data, forKey: key, withAccess: access)
   }
 
@@ -127,9 +129,9 @@ public class KeychainSwift {
   - returns: The text value from the keychain. Returns nil if unable to read the item.
   
   */
-  public func get(key: String) -> String? {
+  open func get(_ key: String) -> String? {
     if let data = getData(key) {
-      if let currentString = NSString(data: data, encoding: NSUTF8StringEncoding) as? String {
+      if let currentString = NSString(data: data, encoding: String.Encoding.utf8.rawValue) as? String {
         return currentString
       }
       
@@ -147,12 +149,12 @@ public class KeychainSwift {
   - returns: The text value from the keychain. Returns nil if unable to read the item.
   
   */
-  public func getData(key: String) -> NSData? {
+  open func getData(_ key: String) -> Data? {
     let prefixedKey = keyWithPrefix(key)
     
     var query: [String: NSObject] = [
       KeychainSwiftConstants.klass       : kSecClassGenericPassword,
-      KeychainSwiftConstants.attrAccount : prefixedKey,
+      KeychainSwiftConstants.attrAccount : prefixedKey as NSObject,
       KeychainSwiftConstants.returnData  : kCFBooleanTrue,
       KeychainSwiftConstants.matchLimit  : kSecMatchLimitOne
     ]
@@ -163,11 +165,11 @@ public class KeychainSwift {
     
     var result: AnyObject?
     
-    lastResultCode = withUnsafeMutablePointer(&result) {
-      SecItemCopyMatching(query, UnsafeMutablePointer($0))
+    lastResultCode = withUnsafeMutablePointer(to: &result) {
+      SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
     }
     
-    if lastResultCode == noErr { return result as? NSData }
+    if lastResultCode == noErr { return result as? Data }
     
     return nil
   }
@@ -180,10 +182,10 @@ public class KeychainSwift {
   - returns: The boolean value from the keychain. Returns nil if unable to read the item.
 
   */
-  public func getBool(key: String) -> Bool? {
+  open func getBool(_ key: String) -> Bool? {
     guard let data = getData(key) else { return nil }
     var boolValue = false
-    data.getBytes(&boolValue, length: sizeof(Bool))
+    (data as NSData).getBytes(&boolValue, length: MemoryLayout<Bool>.size)
     return boolValue
   }
 
@@ -195,19 +197,20 @@ public class KeychainSwift {
   - returns: True if the item was successfully deleted.
   
   */
-  public func delete(key: String) -> Bool {
+  @discardableResult
+  open func delete(_ key: String) -> Bool {
     let prefixedKey = keyWithPrefix(key)
 
     var query: [String: NSObject] = [
       KeychainSwiftConstants.klass       : kSecClassGenericPassword,
-      KeychainSwiftConstants.attrAccount : prefixedKey
+      KeychainSwiftConstants.attrAccount : prefixedKey as NSObject
     ]
     
     query = addAccessGroupWhenPresent(query)
     query = addSynchronizableIfRequired(query, addingItems: false)
     lastQueryParameters = query
     
-    lastResultCode = SecItemDelete(query as CFDictionaryRef)
+    lastResultCode = SecItemDelete(query as CFDictionary)
     
     return lastResultCode == noErr
   }
@@ -219,27 +222,27 @@ public class KeychainSwift {
   - returns: True if the keychain items were successfully deleted.
   
   */
-  public func clear() -> Bool {
+  open func clear() -> Bool {
     var query: [String: NSObject] = [ kSecClass as String : kSecClassGenericPassword ]
     query = addAccessGroupWhenPresent(query)
     query = addSynchronizableIfRequired(query, addingItems: false)
     lastQueryParameters = query
     
-    lastResultCode = SecItemDelete(query as CFDictionaryRef)
+    lastResultCode = SecItemDelete(query as CFDictionary)
     
     return lastResultCode == noErr
   }
   
   /// Returns the key with currently set prefix.
-  func keyWithPrefix(key: String) -> String {
+  func keyWithPrefix(_ key: String) -> String {
     return "\(keyPrefix)\(key)"
   }
   
-  func addAccessGroupWhenPresent(items: [String: NSObject]) -> [String: NSObject] {
+  func addAccessGroupWhenPresent(_ items: [String: NSObject]) -> [String: NSObject] {
     guard let accessGroup = accessGroup else { return items }
     
     var result: [String: NSObject] = items
-    result[KeychainSwiftConstants.accessGroup] = accessGroup
+    result[KeychainSwiftConstants.accessGroup] = accessGroup as NSObject
     return result
   }
   
@@ -253,10 +256,9 @@ public class KeychainSwift {
    - returns: the dictionary with kSecAttrSynchronizable item added if it was requested. Otherwise, it returns the original dictionary.
  
   */
-  func addSynchronizableIfRequired(items: [String: NSObject], addingItems: Bool) -> [String: NSObject] {
+  func addSynchronizableIfRequired(_ items: [String: NSObject], addingItems: Bool) -> [String: NSObject] {
     if !synchronizable { return items }
     var result: [String: NSObject] = items
-    result[KeychainSwiftConstants.attrSynchronizable] = addingItems == true ? true : kSecAttrSynchronizableAny
-    return result
-  }
+    result[KeychainSwiftConstants.attrSynchronizable] = addingItems == true ? NSNumber.init(booleanLiteral: true) : kSecAttrSynchronizableAny
+    return result  }
 }

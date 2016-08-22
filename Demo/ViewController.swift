@@ -19,32 +19,32 @@ class ViewController: UIViewController {
     updateValueLabel()
   }
   
-  @IBAction func onSaveTapped(sender: AnyObject) {
+  @IBAction func onSaveTapped(_ sender: AnyObject) {
     closeKeyboard()
     
     if let text = textField.text {
-      keychain.synchronizable = synchronizableSwitch.on
+      keychain.synchronizable = synchronizableSwitch.isOn
       keychain.set(text, forKey: TegKeychainDemo_keyName)
       updateValueLabel()
     }
   }
   
-  @IBAction func onDeleteTapped(sender: AnyObject) {
+  @IBAction func onDeleteTapped(_ sender: AnyObject) {
     closeKeyboard()
 
-    keychain.synchronizable = synchronizableSwitch.on
+    keychain.synchronizable = synchronizableSwitch.isOn
     keychain.delete(TegKeychainDemo_keyName)
     updateValueLabel()
   }
   
-  @IBAction func onGetTapped(sender: AnyObject) {
+  @IBAction func onGetTapped(_ sender: AnyObject) {
     closeKeyboard()
 
     updateValueLabel()
   }
   
-  private func updateValueLabel() {
-    keychain.synchronizable = synchronizableSwitch.on
+  fileprivate func updateValueLabel() {
+    keychain.synchronizable = synchronizableSwitch.isOn
     
     if let value = keychain.get(TegKeychainDemo_keyName) {
       valueLabel.text = "In Keychain: \(value)"
@@ -53,11 +53,11 @@ class ViewController: UIViewController {
     }
   }
   
-  private func closeKeyboard() {
+  fileprivate func closeKeyboard() {
     textField.resignFirstResponder()
   }
   
-  @IBAction func didTapView(sender: AnyObject) {
+  @IBAction func didTapView(_ sender: AnyObject) {
     closeKeyboard()
   }
 }
