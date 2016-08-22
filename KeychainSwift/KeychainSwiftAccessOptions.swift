@@ -76,7 +76,7 @@ public enum KeychainSwiftAccessOptions {
     return .accessibleWhenUnlocked
   }
   
-  var value: String {
+  var value: NSString {
     switch self {
     case .accessibleWhenUnlocked:
       return toString(kSecAttrAccessibleWhenUnlocked)
@@ -101,7 +101,7 @@ public enum KeychainSwiftAccessOptions {
     }
   }
   
-  func toString(_ value: CFString) -> String {
+  func toString(_ value: CFString) -> NSString {
     return KeychainSwiftConstants.toString(value)
   }
 }

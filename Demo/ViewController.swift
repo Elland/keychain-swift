@@ -1,7 +1,7 @@
 import UIKit
 import KeychainSwift
 
-let TegKeychainDemo_keyName = "my key"
+let TegKeychainDemo_keyName: NSString = "my key"
 
 class ViewController: UIViewController {
   
@@ -22,7 +22,7 @@ class ViewController: UIViewController {
   @IBAction func onSaveTapped(_ sender: AnyObject) {
     closeKeyboard()
     
-    if let text = textField.text {
+    if let text = textField.text as NSString? {
       keychain.synchronizable = synchronizableSwitch.isOn
       keychain.set(text, forKey: TegKeychainDemo_keyName)
       updateValueLabel()
