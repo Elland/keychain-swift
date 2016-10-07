@@ -446,7 +446,7 @@
 					7ED6C96B1B1C118F00FE8090 = {
 						CreatedOnToolsVersion = 6.4;
 						DevelopmentTeam = 29X3GG489T;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0810;
 					};
 					7ED6C9761B1C118F00FE8090 = {
 						CreatedOnToolsVersion = 6.4;
@@ -455,7 +455,7 @@
 					7ED6C99C1B1C133500FE8090 = {
 						CreatedOnToolsVersion = 6.4;
 						DevelopmentTeam = 29X3GG489T;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0810;
 					};
 				};
 			};
